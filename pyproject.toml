@@ -1,0 +1,53 @@
+[project]
+name = "ferocia-takehome"
+version = "0.1.0"
+description = "Ferocia take-home exercise"
+readme = "README.md"
+authors = [
+    { name = "Jun Yang", email = "handsomeyang@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+ferocia-takehome = "ferocia_takehome:main"
+
+[build-system]
+requires = ["uv_build>=0.9.12,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.2",
+    "mypy>=1.19.0",
+    "pre-commit>=4.5.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--strict-config",
+    "--strict-markers",
+    "--cov=ferocia_takehome",
+    "--cov-report=xml"
+]
+
+[tool.coverage.run]
+source = ["ferocia_takehome"]
+omit = [
+    "*/__init__.py"
+]
+
+[tool.coverage.report]
+fail_under = 80
+
+[tool.mypy]
+strict = true
+files = ["src"]
+exclude = ["tests"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
