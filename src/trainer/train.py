@@ -11,7 +11,7 @@ from sklearn.metrics import roc_auc_score
 from xgboost import XGBClassifier
 from scipy.stats import uniform, randint
 import joblib
-from utils import get_data_dir, get_artifacts_dir
+from utils import get_data_dir, get_artifacts_dir, encode_binary_features
 from colorama import init, Fore, Style
 
 
@@ -44,8 +44,7 @@ def main() -> None:
     binary_features = ["default", "housing", "loan"]
 
     print("Encoding binary features")
-    for bf in binary_features + ["y"]:
-        df[bf] = df[bf].map({"yes": 1, "no": 0})
+    encode_binary_features(df, binary_features + ["y"])
 
     print("Creating data processor (numerical features + categorical features)")
     # Define data processor:

@@ -1,4 +1,5 @@
 from pathlib import Path
+import pandas as pd
 
 
 def get_project_root() -> Path:
@@ -27,3 +28,11 @@ def get_artifacts_dir() -> Path:
         return artifacts_dir
 
     raise RuntimeError("Artifacts dir not found.")
+
+
+def encode_binary_features(df: pd.DataFrame, binary_features: list[str]) -> None:
+    try:
+        for bf in binary_features:
+            df[bf] = df[bf].map({"yes": 1, "no": 0})
+    except KeyError as e:
+        print(f"An unexpected key error occurred during binary encoding: {e}")
