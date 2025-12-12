@@ -29,6 +29,7 @@ dev = [
     "jupyter>=1.1.1",
     "mypy>=1.19.0",
     "pre-commit>=4.5.0",
+    "pydantic[mypy]>=2.12.5",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.8",
@@ -58,6 +59,7 @@ fail_under = 80
 
 [tool.mypy]
 strict = true
+plugins = ["pydantic.mypy"]
 files = ["src"]
 exclude = ["tests"]
 ignore_missing_imports = true

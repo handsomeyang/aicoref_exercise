@@ -3,6 +3,7 @@ from typing import AsyncIterator
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from utils import get_artifacts_dir
+from models import HealthCheckResult, PredictionResult
 
 
 @asynccontextmanager
@@ -27,10 +28,10 @@ app = FastAPI(
 
 
 @app.get("/")
-def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+def health_check() -> HealthCheckResult:
+    return HealthCheckResult(status="ok")
 
 
 @app.post("/predict")
-async def predict_subscription() -> None:
+async def predict_subscription() -> PredictionResult:
     pass
