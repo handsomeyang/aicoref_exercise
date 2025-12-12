@@ -12,9 +12,16 @@ from xgboost import XGBClassifier
 from scipy.stats import uniform, randint
 import joblib
 from utils import get_data_dir, get_artifacts_dir
+from colorama import init, Fore, Style
+
+
+init()
 
 
 def main() -> None:
+    print(Fore.CYAN + "========== Creating data pipeline ==========" + Style.RESET_ALL)
+
+    print("Loading dataset.csv")
     df = pd.read_csv(get_data_dir() / "dataset.csv", sep=";")
 
     numerical_features = [
@@ -36,9 +43,15 @@ def main() -> None:
     ]
     binary_features = ["default", "housing", "loan"]
 
+    print("Encoding binary features")
     for bf in binary_features + ["y"]:
         df[bf] = df[bf].map({"yes": 1, "no": 0})
 
+    print("Creating data processor (numerical features + categorical features)")
+    # Define data processor:
+    # Z-score scaling for numerical features
+    # One-Hot Encoding for categorical features
+    # Pass binary encoding through for binary features
     preprocessor = ColumnTransformer(
         transformers=[
             (
@@ -55,43 +68,65 @@ def main() -> None:
         remainder="passthrough",
     )
 
+    # The problem is essentially an unbalanced binary classification problem
+    # Use class weighting to put more weights on the negative samples
     positive_count = df["y"].sum()
     negative_count = len(df) - positive_count
     scale_weight = negative_count / positive_count
-    print(positive_count, negative_count, scale_weight)
+    print(
+        f"Positive count: {positive_count}, negative count: {negative_count}, neg/pos: {scale_weight}"
+    )
 
+    print(Fore.CYAN + "========== Creating model pipeline ==========" + Style.RESET_ALL)
+
+    print("Creating model")
     xgb_model = XGBClassifier(
         objective="binary:logistic", eval_metric="logloss", random_state=42
     )
 
+    print(
+        Fore.CYAN
+        + "========== Creating final pipeline (data + model) =========="
+        + Style.RESET_ALL
+    )
     cv_pipeline = Pipeline(
         steps=[("preprocessor", preprocessor), ("classifier", xgb_model)]
+    )
+
+    print(
+        Fore.CYAN
+        + "========== Running hyperparameter tuning via stratified CV =========="
+        + Style.RESET_ALL
     )
 
     X = df.drop(columns=["y"])
     y = df["y"]
 
+    print("Splitting data")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, stratify=y, random_state=42
     )
 
+    print("Creating parameter distributions")
     param_distributions = {
         "classifier__n_estimators": randint(100, 1000),
         "classifier__learning_rate": uniform(loc=0.01, scale=0.29),  # Range 0.01 to 0.3
         "classifier__max_depth": randint(3, 10),
         "classifier__subsample": uniform(loc=0.6, scale=0.4),  # Range 0.6 to 1.0
         "classifier__colsample_bytree": uniform(loc=0.6, scale=0.4),  # Range 0.6 to 1.0
-        "classifier__gamma": uniform(loc=0, scale=0.5),
+        "classifier__gamma": uniform(loc=0, scale=0.5),  # Range 0 to 0.5
         "classifier__scale_pos_weight": uniform(
-            loc=scale_weight * 0.9, scale=scale_weight * 0.2
+            loc=scale_weight * 0.9,
+            scale=scale_weight * 0.2,  # Range scale_weight * 0.9 to scale_weight * 1.1
         ),
     }
 
+    print("Creating CV strategy")
     k_folds = 5
     cv_strategy = StratifiedKFold(n_splits=k_folds, shuffle=True, random_state=42)
 
+    print("Creating randomized search")
     n_iter = 10
-
     random_search = RandomizedSearchCV(
         estimator=cv_pipeline,
         param_distributions=param_distributions,
@@ -103,21 +138,27 @@ def main() -> None:
         n_jobs=-1,
     )
 
+    print("Running randomized search")
     random_search.fit(X_train, y_train)
 
     best_roc_auc_score = random_search.best_score_
     best_params = random_search.best_params_
     best_pipeline = random_search.best_estimator_
 
-    print(best_roc_auc_score)
+    print(Fore.YELLOW + f"Best ROC AUC score: {best_roc_auc_score}" + Style.RESET_ALL)
+    print(Fore.YELLOW + "Best performing parameters:" + Style.RESET_ALL)
     for k, v in best_params.items():
-        print(f"  {k}: {v}")
+        print(Fore.YELLOW + f"  {k}: {v}" + Style.RESET_ALL)
 
     y_pred_proba = best_pipeline.predict_proba(X_test)[:, 1]
-
     final_roc_auc = roc_auc_score(y_test, y_pred_proba)
-    print(final_roc_auc)
+    print(
+        Fore.YELLOW
+        + f"ROC AUC score of best model on holdout test set: {final_roc_auc}"
+        + Style.RESET_ALL
+    )
 
+    print("Saving pipeline (data + best performing model)")
     joblib.dump(best_pipeline, get_artifacts_dir() / "best_ml_pipeline.joblib")
 
 
