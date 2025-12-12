@@ -2,8 +2,9 @@ import joblib
 from typing import AsyncIterator
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+import pandas as pd
 from utils import get_artifacts_dir
-from models import HealthCheckResult, PredictionResult
+from models import CustomerData, HealthCheckResult, PredictionResult
 
 
 @asynccontextmanager
@@ -27,11 +28,18 @@ app = FastAPI(
 )
 
 
-@app.get("/")
+@app.get("/", response_model=HealthCheckResult)
 def health_check() -> HealthCheckResult:
     return HealthCheckResult(status="ok")
 
 
 @app.post("/predict")
-async def predict_subscription() -> PredictionResult:
-    pass
+async def predict_subscription(data: CustomerData) -> PredictionResult:
+    data_dict = data.model_dump()
+
+    input_df = pd.DataFrame([data_dict])
+    subscription_prob = app.state.best_ml_pipeline.predict_proba(input_df)[0][1]
+
+    return PredictionResult(
+        status="Success", prediction="yes" if subscription_prob > 0.5 else "no"
+    )
