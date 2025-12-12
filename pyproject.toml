@@ -33,7 +33,7 @@ dev = [
 ]
 
 [tool.uv.build-backend]
-module-name = ["trainer"]
+module-name = ["trainer", "utils"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

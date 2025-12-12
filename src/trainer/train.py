@@ -1,5 +1,4 @@
 import pandas as pd
-from pathlib import Path
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import (
@@ -12,15 +11,11 @@ from sklearn.metrics import roc_auc_score
 from xgboost import XGBClassifier
 from scipy.stats import uniform, randint
 import joblib
-
-
-project_root = Path(__file__).resolve().parent.parent.parent
-data_dir = project_root / "data"
-artifacts_dir = project_root / "artifacts"
+from utils import get_data_dir, get_artifacts_dir
 
 
 def main() -> None:
-    df = pd.read_csv(data_dir / "dataset.csv", sep=";")
+    df = pd.read_csv(get_data_dir() / "dataset.csv", sep=";")
 
     numerical_features = [
         "age",
@@ -123,7 +118,7 @@ def main() -> None:
     final_roc_auc = roc_auc_score(y_test, y_pred_proba)
     print(final_roc_auc)
 
-    joblib.dump(best_pipeline, artifacts_dir / "best_ml_pipeline.joblib")
+    joblib.dump(best_pipeline, get_artifacts_dir() / "best_ml_pipeline.joblib")
 
 
 if __name__ == "__main__":
