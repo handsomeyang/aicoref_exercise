@@ -50,9 +50,6 @@ addopts = [
 
 [tool.coverage.run]
 source = ["src"]
-omit = [
-    "*/__init__.py"
-]
 
 #[tool.coverage.report]
 #fail_under = 80
