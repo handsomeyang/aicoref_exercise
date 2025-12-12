@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import pandas as pd
 from utils import get_artifacts_dir
-from models import CustomerData, HealthCheckResult, PredictionResult
+from .models import CustomerData, HealthCheckResult, PredictionResult
 
 
 @asynccontextmanager
