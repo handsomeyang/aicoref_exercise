@@ -6,11 +6,12 @@ readme = "README.md"
 authors = [
     { name = "Jun Yang", email = "handsomeyang@gmail.com" }
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.12, <3.14"
 dependencies = [
     "colorama>=0.4.6",
     "joblib>=1.5.2",
     "pandas>=2.3.3",
+    "pydantic>=2.12.5",
     "scikit-learn>=1.8.0",
     "xgboost>=3.1.2",
 ]
@@ -31,6 +32,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.8",
+    "typing-extensions>=4.15.0",
 ]
 
 [tool.uv.build-backend]
@@ -59,6 +61,7 @@ strict = true
 files = ["src"]
 exclude = ["tests"]
 ignore_missing_imports = true
+disallow_untyped_decorators = false
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
