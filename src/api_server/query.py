@@ -22,15 +22,15 @@ def main() -> None:
     headers = {"Content-Type": "application/json"}
     api_url = f"http://{args.host}:{args.port}/predict"
 
+    ground_truth = None
     if args.data is None:
         print(Fore.YELLOW + "No input data. Sampling the dataset.\n" + Style.RESET_ALL)
 
         dataset_path = get_data_dir() / "dataset.csv"
         try:
             df = pd.read_csv(dataset_path, sep=";")
-            user_data = json.loads(
-                df.sample(n=1, random_state=42).drop(columns=["y"]).iloc[0].to_json()
-            )
+            ground_truth = df.sample(n=1)
+            user_data = json.loads(ground_truth.drop(columns=["y"]).iloc[0].to_json())
 
         except FileNotFoundError:
             print(
@@ -52,6 +52,11 @@ def main() -> None:
 
         print(Fore.CYAN + "Query result" + Style.RESET_ALL)
         print(json.dumps(response.json(), indent=2))
+
+        if ground_truth is not None:
+            print(Fore.CYAN + "\nGround truth" + Style.RESET_ALL)
+            print(ground_truth["y"].iloc[0])
+
     except requests.exceptions.HTTPError as errh:
         print(Fore.RED + f"HTTP Error occurred: {errh}" + Style.RESET_ALL)
         print(f"Response body: {response.text}")

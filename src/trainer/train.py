@@ -1,4 +1,5 @@
 import json
+import argparse
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -20,6 +21,19 @@ init()
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Train the term subscription prediction model."
+    )
+    parser.add_argument(
+        "--hyper-tune-iter",
+        type=int,
+        default=100,
+        help="Number of iterations of hyperparameter tuning.",
+    )
+    parser.add_argument("--cv-fold", type=int, default=5, help="Number of CV folds.")
+
+    args = parser.parse_args()
+
     print(Fore.CYAN + "========== Creating data pipeline ==========" + Style.RESET_ALL)
 
     print("Loading dataset.csv")
@@ -127,11 +141,11 @@ def main() -> None:
     }
 
     print("Creating CV strategy")
-    k_folds = 5
+    k_folds = args.cv_fold
     cv_strategy = StratifiedKFold(n_splits=k_folds, shuffle=True, random_state=42)
 
     print("Creating randomized search")
-    n_iter = 100
+    n_iter = args.hyper_tune_iter
     random_search = RandomizedSearchCV(
         estimator=cv_pipeline,
         param_distributions=param_distributions,
