@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="Term deposit subscription API",
+    title="Term subscription prediction API",
     description="Predicts whether a customer will subscribe to a term deposit",
     version="0.1.0",
     contact={"email": "handsomeyang@gmail.com"},
