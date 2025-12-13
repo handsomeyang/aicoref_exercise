@@ -2,7 +2,7 @@ import argparse
 import uvicorn
 
 
-def start_server() -> None:
+def serve() -> None:
     parser = argparse.ArgumentParser(
         description="Run the term subscription prediction API server."
     )
@@ -26,4 +26,4 @@ def start_server() -> None:
 
 
 if __name__ == "__main__":
-    start_server()
+    serve()
