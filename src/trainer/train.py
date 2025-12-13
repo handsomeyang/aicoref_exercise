@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -42,6 +43,8 @@ def main() -> None:
         "poutcome",
     ]
     binary_features = ["default", "housing", "loan"]
+    with open(get_artifacts_dir() / "binary_features.json", "w") as f:
+        json.dump(binary_features, f)
 
     print("Encoding binary features")
     encode_binary_features(df, binary_features + ["y"])
@@ -101,6 +104,9 @@ def main() -> None:
     X = df.drop(columns=["y"])
     y = df["y"]
 
+    with open(get_artifacts_dir() / "training_features.json", "w") as f:
+        json.dump(X.columns.to_list(), f)
+
     print("Splitting data")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, stratify=y, random_state=42
@@ -125,7 +131,7 @@ def main() -> None:
     cv_strategy = StratifiedKFold(n_splits=k_folds, shuffle=True, random_state=42)
 
     print("Creating randomized search")
-    n_iter = 10
+    n_iter = 100
     random_search = RandomizedSearchCV(
         estimator=cv_pipeline,
         param_distributions=param_distributions,
