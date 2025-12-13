@@ -6,26 +6,38 @@ from fastapi import FastAPI
 import pandas as pd
 from utils import get_artifacts_dir, encode_binary_features
 from .models import CustomerData, HealthCheckResult, PredictionResult
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     pipeline_path = get_artifacts_dir() / "best_ml_pipeline.joblib"
+
+    if not pipeline_path.exists():
+        logger.critical(
+            f"FATAL: Model pipeline file not found at {pipeline_path}. Server cannot start."
+        )
+        raise SystemExit(f"Missing critical file: {pipeline_path}")
+
     try:
         app.state.ml_pipeline = joblib.load(pipeline_path)
-    except FileNotFoundError:
-        print(
-            f"ERROR: Pipeline file not found at {pipeline_path}. Check deployment path."
+        logger.info("Model loaded successfully. Server ready to start.")
+    except Exception as e:
+        logger.critical(
+            f"FATAL: Failed to load model pipeline from {pipeline_path}.", exc_info=True
         )
-        app.state.ml_pipeline = None
+        raise SystemExit(f"Failed to load model pipeline: {e}")
 
     training_features_path = get_artifacts_dir() / "training_features.json"
     try:
         with open(training_features_path, "r") as f:
             app.state.training_features = json.load(f)
-    except FileNotFoundError:
-        print(
-            f"ERROR: Training features file not found at {training_features_path}. Loading default training features."
+    except Exception:
+        logger.warning(
+            f"WARN: Failed to load training features from {training_features_path}. Using default training features."
         )
         app.state.training_features = [
             "age",
@@ -50,9 +62,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         with open(binary_features_path, "r") as f:
             app.state.binary_features = json.load(f)
-    except FileNotFoundError:
-        print(
-            f"ERROR: Binary features file not found at {binary_features_path}. Loading default binary features."
+    except Exception:
+        logger.warning(
+            f"WARN: Failed to load binary features from {binary_features_path}. Using default binary features."
         )
         app.state.binary_features = ["default", "housing", "loan"]
 
@@ -73,17 +85,29 @@ app = FastAPI(
 
 @app.get("/", response_model=HealthCheckResult)
 def health_check() -> HealthCheckResult:
-    return HealthCheckResult(status="ok")
+    return HealthCheckResult(status="OK")
 
 
 @app.post("/predict")
 async def predict_subscription(data: CustomerData) -> PredictionResult:
     data_dict = data.model_dump()
 
-    input_df = pd.DataFrame([data_dict], columns=app.state.training_features)
-    encode_binary_features(input_df, app.state.binary_features)
-    subscription_prob = app.state.ml_pipeline.predict_proba(input_df)[0][1]
+    logger.info(f"Prediction initiated for new request: {data.model_dump_json()}")
 
-    return PredictionResult(
-        status="Success", prediction="yes" if subscription_prob > 0.5 else "no"
-    )
+    try:
+        # Use training_features persisted together with the trained pipeline to construct a data frame with the same
+        # column order as the training data
+        input_df = pd.DataFrame([data_dict], columns=app.state.training_features)
+        encode_binary_features(input_df, app.state.binary_features)
+        subscription_prob = app.state.ml_pipeline.predict_proba(input_df)[0][1]
+
+        result = PredictionResult(
+            status="Success", prediction="yes" if subscription_prob > 0.5 else "no"
+        )
+
+        logger.info(f"Prediction completed successfully: {result.model_dump_json()}")
+
+        return result
+    except Exception as e:
+        logger.exception("ERROR: Prediction failed due to error")
+        raise e
