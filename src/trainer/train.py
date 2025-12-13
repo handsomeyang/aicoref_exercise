@@ -13,7 +13,14 @@ from sklearn.metrics import roc_auc_score
 from xgboost import XGBClassifier
 from scipy.stats import uniform, randint
 import joblib
-from utils import get_data_dir, get_artifacts_dir, encode_binary_features
+from utils import (
+    get_data_dir,
+    get_artifacts_dir,
+    encode_binary_features,
+    numerical_features,
+    categorical_features,
+    binary_features,
+)
 from colorama import init, Fore, Style
 
 
@@ -39,24 +46,6 @@ def main() -> None:
     print("Loading dataset.csv")
     df = pd.read_csv(get_data_dir() / "dataset.csv", sep=";")
 
-    numerical_features = [
-        "age",
-        "balance",
-        "day",
-        "duration",
-        "campaign",
-        "pdays",
-        "previous",
-    ]
-    categorical_features = [
-        "job",
-        "marital",
-        "education",
-        "contact",
-        "month",
-        "poutcome",
-    ]
-    binary_features = ["default", "housing", "loan"]
     with open(get_artifacts_dir() / "binary_features.json", "w") as f:
         json.dump(binary_features, f)
 

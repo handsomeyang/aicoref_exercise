@@ -4,7 +4,7 @@ from typing import AsyncIterator
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import pandas as pd
-from utils import get_artifacts_dir, encode_binary_features
+from utils import get_artifacts_dir, encode_binary_features, training_features
 from .models import CustomerData, HealthCheckResult, PredictionResult
 import logging
 
@@ -39,24 +39,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.warning(
             f"WARN: Failed to load training features from {training_features_path}. Using default training features."
         )
-        app.state.training_features = [
-            "age",
-            "job",
-            "marital",
-            "education",
-            "default",
-            "balance",
-            "housing",
-            "loan",
-            "contact",
-            "day",
-            "month",
-            "duration",
-            "campaign",
-            "pdays",
-            "previous",
-            "poutcome",
-        ]
+        app.state.training_features = training_features
 
     binary_features_path = get_artifacts_dir() / "binary_features.json"
     try:

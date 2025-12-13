@@ -1,5 +1,46 @@
 from pathlib import Path
+
 import pandas as pd
+
+numerical_features = [
+    "age",
+    "balance",
+    "day",
+    "duration",
+    "campaign",
+    "pdays",
+    "previous",
+]
+
+categorical_features = [
+    "job",
+    "marital",
+    "education",
+    "contact",
+    "month",
+    "poutcome",
+]
+
+binary_features = ["default", "housing", "loan"]
+
+training_features = [
+    "age",
+    "job",
+    "marital",
+    "education",
+    "default",
+    "balance",
+    "housing",
+    "loan",
+    "contact",
+    "day",
+    "month",
+    "duration",
+    "campaign",
+    "pdays",
+    "previous",
+    "poutcome",
+]
 
 
 def get_project_root() -> Path:
