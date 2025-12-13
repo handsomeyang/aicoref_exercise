@@ -21,6 +21,7 @@ dependencies = [
 [project.scripts]
 train = "trainer.train:main"
 serve = "api_server.serve:main"
+query = "api_server.query:main"
 
 [build-system]
 requires = ["uv_build>=0.9.12,<0.10.0"]
@@ -32,10 +33,10 @@ dev = [
     "jupyter>=1.1.1",
     "mypy>=1.19.0",
     "pre-commit>=4.5.0",
-    "pydantic[mypy]>=2.12.5",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.8",
+    "types-requests>=2.32.4.20250913",
     "typing-extensions>=4.15.0",
 ]
 
@@ -59,7 +60,6 @@ source = ["src"]
 
 [tool.mypy]
 strict = true
-plugins = ["pydantic.mypy"]
 files = ["src"]
 exclude = ["tests"]
 ignore_missing_imports = true
