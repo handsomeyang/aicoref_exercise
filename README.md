@@ -57,7 +57,7 @@ Note:
 * Improve documentation (docstrings + comments).
 * Improve test coverage.
 * Improve logging (structured logs).
-* Add model monitoring.
+* Implement MLOps (data and model versioning, tracking, monitoring).
 * Model optimisation.
 
 ## Use of AI
